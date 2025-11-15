@@ -1,15 +1,14 @@
 use simple_complex_numbers::Complex;
-use std::collections::HashMap;
 
-static USAGE_STR: &str = concat!("Usage: ", env!("CARGO_BIN_NAME"), " <name=value...;>");
+static USAGE_STR: &str = concat!("Usage: ", env!("CARGO_BIN_NAME"), " <A=value>");
 
 struct Problem {
-    map: HashMap<String, Complex>,
+    value: Complex,
 }
 
 fn main() -> anyhow::Result<()> {
     let problem = parse_args()?;
-    let solution = solve(problem)?;
+    let solution = solve(problem);
 
     println!("The result is {}", solution);
 
@@ -25,71 +24,60 @@ fn parse_args() -> anyhow::Result<Problem> {
         ));
     }
 
-    let name_value_pairs = args
-        .next()
-        .unwrap()
-        .split(';')
+    let name_value_pair = args.next().unwrap();
+    let (name, value) = name_value_pair.split_once('=').ok_or(anyhow::anyhow!(
+        "Invalid name value pair found `{}`.",
+        name_value_pair
+    ))?;
+
+    if name != "A" {
+        return Err(anyhow::anyhow!("The name must be 'A', not `{}`", name));
+    }
+
+    if !value.starts_with('[') || !value.ends_with("]") || !value.contains(',') {
+        return Err(anyhow::anyhow!(
+            "Invalid value `{}`; It must be in the format [int,int].",
+            value
+        ));
+    }
+
+    let value = &value[1..value.len() - 1]; // Remove '[' and ']'
+    let numbers = value
+        .split(',')
         .filter_map(|s| {
             let trimmed = s.trim();
             if !trimmed.is_empty() {
-                Some(trimmed.to_owned())
+                Some(trimmed)
             } else {
                 None
             }
         })
         .map(|s| {
-            let (name, value) = s
-                .split_once('=')
-                .ok_or(anyhow::anyhow!("Invalid name value pair found `{}`.", s))?;
-
-            if !value.starts_with('[') || !value.ends_with("]") || value.len() < 3 {
-                return Err(anyhow::anyhow!(
-                    "Invalid value `{}`; It must be in the format [int,int].",
-                    value
-                ));
-            }
-
-            let value = &value[1..value.len() - 1]; // Remove '[' and ']'
-            let numbers = value
-                .split(',')
-                .filter_map(|s| {
-                    let trimmed = s.trim();
-                    if !trimmed.is_empty() {
-                        Some(trimmed)
-                    } else {
-                        None
-                    }
-                })
-                .map(|s| {
-                    Ok(s.parse::<i64>() // Convert to i64
-                        .map_err(|_| anyhow::anyhow!("Invalid number `{}`.", s))?)
-                })
-                .collect::<anyhow::Result<Vec<_>>>()?;
-
-            if numbers.len() != 2 {
-                return Err(anyhow::anyhow!("Invalid name value pair `{}`.", s));
-            }
-
-            Ok((name.to_owned(), Complex::new(numbers[0], numbers[1])))
+            s.parse::<i64>() // Convert to i64
+                .map_err(|_| anyhow::anyhow!("Invalid number `{}`.", s))
         })
-        .collect::<anyhow::Result<HashMap<_, _>>>()?;
+        .collect::<anyhow::Result<Vec<_>>>()?;
+
+    if numbers.len() != 2 {
+        return Err(anyhow::anyhow!(
+            "Invalid value `{}`; It must be in the format [int,int].",
+            value
+        ));
+    }
 
     Ok(Problem {
-        map: name_value_pairs,
+        value: Complex::new(numbers[0], numbers[1]),
     })
 }
 
-fn solve(problem: Problem) -> anyhow::Result<Complex> {
+fn solve(Problem { value }: Problem) -> Complex {
     let mut result = Complex::new(0, 0);
 
     for _ in 0..3 {
         result *= result;
         result /= Complex::new(10, 10);
-        result += *problem
-            .map
-            .get("A")
-            .ok_or(anyhow::anyhow!("Value 'A' not found."))?;
+        result += value;
     }
 
-    Ok(result)
+    result
 }
