@@ -7,6 +7,14 @@ impl Complex {
     pub fn new(real: i64, imag: i64) -> Self {
         Complex(real, imag)
     }
+
+    pub fn real(&self) -> i64 {
+        self.0
+    }
+
+    pub fn imag(&self) -> i64 {
+        self.1
+    }
 }
 
 impl std::ops::Add for Complex {
