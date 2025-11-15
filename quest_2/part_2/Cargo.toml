@@ -1,0 +1,8 @@
+[package]
+name = "part_2"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.100"
+simple_complex_numbers = { path = "../utility/simple_complex_numbers" }
