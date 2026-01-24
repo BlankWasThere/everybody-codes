@@ -71,23 +71,21 @@ pub fn solve(input: &str) -> anyhow::Result<()> {
 
         if remaining_moves != MOVES {
             // Before sheep's turn
-            if let Some(moved_row) = (row as usize).checked_sub(sheep_movement) {
-                if board[moved_row as usize][col as usize]
-                    && !hideouts.contains(&(row as usize, col as usize))
-                {
-                    sheeps.insert((moved_row as isize, col));
-                }
+            if let Some(moved_row) = (row as usize).checked_sub(sheep_movement)
+                && board[moved_row][col as usize]
+                && !hideouts.contains(&(row as usize, col as usize))
+            {
+                sheeps.insert((moved_row as isize, col));
             }
 
             sheep_movement += 1;
 
             // After sheep's turn
-            if let Some(moved_row) = (row as usize).checked_sub(sheep_movement) {
-                if board[moved_row as usize][col as usize]
-                    && !hideouts.contains(&(row as usize, col as usize))
-                {
-                    sheeps.insert((moved_row as isize, col));
-                }
+            if let Some(moved_row) = (row as usize).checked_sub(sheep_movement)
+                && board[moved_row][col as usize]
+                && !hideouts.contains(&(row as usize, col as usize))
+            {
+                sheeps.insert((moved_row as isize, col));
             }
         }
 
