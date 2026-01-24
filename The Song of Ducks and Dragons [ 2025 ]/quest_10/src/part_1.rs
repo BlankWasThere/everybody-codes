@@ -1,6 +1,7 @@
 use anyhow::bail;
 use std::collections::HashSet;
 
+#[allow(clippy::type_complexity)]
 fn parse_input(input: &str) -> anyhow::Result<((usize, usize), Vec<Vec<bool>>)> {
     let mut dragon = None;
 
