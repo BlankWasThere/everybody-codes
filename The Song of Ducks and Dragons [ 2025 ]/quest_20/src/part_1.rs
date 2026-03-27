@@ -1,5 +1,5 @@
 use core::panic;
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 
 pub fn solve(input: &str) -> u32 {
     let grid = parse_input(input);
