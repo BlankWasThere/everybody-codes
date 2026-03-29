@@ -1,4 +1,3 @@
-use core::panic;
 use std::collections::HashSet;
 
 pub fn solve(input: &str) -> u32 {

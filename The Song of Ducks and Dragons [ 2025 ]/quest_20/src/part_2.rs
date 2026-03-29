@@ -1,4 +1,3 @@
-use core::panic;
 use std::collections::{HashSet, VecDeque};
 
 type Trampolines = Vec<Vec<Option<bool>>>;
