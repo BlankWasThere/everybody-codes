@@ -20,21 +20,21 @@ fn main() {
     if let Some(input) = read_input("input_1.txt").expect("should be able to read input 1") {
         println!("========== Part 1 ==========");
         let (answer, duration) = timeit(|| part_1::solve(&input));
-        println!("Answer ({:?}): {}", duration, answer);
+        println!("Answer ({duration:?}): {answer}");
     }
 
     // Part 2
     if let Some(input) = read_input("input_2.txt").expect("should be able to read input 2") {
         println!("========== Part 2 ==========");
         let (answer, duration) = timeit(|| part_2::solve(&input));
-        println!("Answer ({:?}): {}", duration, answer);
+        println!("Answer ({duration:?}): {answer}");
     }
 
     // Part 3
     if let Some(input) = read_input("input_3.txt").expect("should be able to read input 3") {
         println!("========== Part 3 ==========");
         let (answer, duration) = timeit(|| part_3::solve(&input));
-        println!("Answer ({:?}): {}", duration, answer);
+        println!("Answer ({duration:?}): {answer}");
     }
 }
 
