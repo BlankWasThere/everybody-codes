@@ -77,19 +77,19 @@ fn surround(point: Point, visited: &mut HashSet<Point>) {
 
     for &(px, py) in visited.iter() {
         if max_x.is_none_or(|max| px > max) {
-            max_x = Some(px + 1);
+            max_x = Some(px);
         }
 
         if max_y.is_none_or(|max| py > max) {
-            max_y = Some(py + 1);
+            max_y = Some(py);
         }
 
         if min_x.is_none_or(|min| px < min) {
-            min_x = Some(px - 1);
+            min_x = Some(px);
         }
 
         if min_y.is_none_or(|min| py < min) {
-            min_y = Some(py - 1);
+            min_y = Some(py);
         }
     }
 
