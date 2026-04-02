@@ -1,153 +1,95 @@
-// This solution uses bruteforce, and is slow. I may or may not fix this later...
-
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 
 type Point = (i32, i32);
 
-const DIRECTIONS: [(i32, i32); 12] = [
-    (0, -1), // U
-    (0, -1),
-    (0, -1),
-    (1, 0), // R
-    (1, 0),
-    (1, 0),
-    (0, 1), // D
-    (0, 1),
-    (0, 1),
-    (-1, 0), // L
-    (-1, 0),
-    (-1, 0),
+const DIRECTIONS: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
+
+#[rustfmt::skip]
+const MOVES: [(i32, i32); 12] = [
+    DIRECTIONS[0],
+    DIRECTIONS[0],
+    DIRECTIONS[0],
+
+    DIRECTIONS[1],
+    DIRECTIONS[1],
+    DIRECTIONS[1],
+
+    DIRECTIONS[2],
+    DIRECTIONS[2],
+    DIRECTIONS[2],
+
+    DIRECTIONS[3],
+    DIRECTIONS[3],
+    DIRECTIONS[3],
 ];
 
 pub fn solve(input: &str) -> u32 {
-    let destinations = parse_input(input);
+    let targets = parse_input(input);
     let start = (0, 0);
-
-    // Since the inner points can be surrounded if the outer (boundary) points are, we can remove them.
-    let mut remaining = destinations
-        .iter()
-        .copied()
-        .filter(|&p| {
-            !DIRECTIONS
-                .into_iter()
-                .all(|d| destinations.contains(&add_points(p, d)))
-        })
-        .collect::<Vec<_>>();
-
-    let mut surrounded_cache = HashSet::new();
-    let mut visited: HashSet<(i32, i32)> = remaining
-        .iter()
-        .copied()
-        .chain([start])
-        .collect::<HashSet<_>>();
 
     let mut steps = 0;
     let mut curr = start;
+    let mut visited = HashSet::from_iter(targets.iter().copied().chain([start]));
 
-    for direction in DIRECTIONS.into_iter().cycle() {
+    // Remove inner points, as enclosing outer points will automatically enclose inner points
+    let mut remaining = targets
+        .into_iter()
+        .filter(|&p| {
+            surround(p, &mut visited);
+
+            !DIRECTIONS
+                .into_iter()
+                .all(|d| visited.contains(&add_points(p, d)))
+        })
+        .collect::<HashSet<_>>();
+
+    for r#move in MOVES.into_iter().cycle() {
         if remaining.is_empty() {
             break;
         }
 
-        let next = add_points(curr, direction);
-        if visited.insert(next) && !surrounded(next, &visited, &mut surrounded_cache) {
-            curr = next;
-            steps += 1;
-            remaining.retain(|&p| !surrounded(p, &visited, &mut surrounded_cache));
+        let next_point = add_points(curr, r#move);
+
+        if !visited.insert(next_point) {
+            continue;
         }
+
+        steps += 1;
+        curr = next_point;
+        surround(curr, &mut visited);
+
+        remaining.retain(|&p| {
+            !DIRECTIONS
+                .into_iter()
+                .all(|d| visited.contains(&add_points(p, d)))
+        });
     }
 
     steps
 }
 
-fn surrounded(point: Point, visited: &HashSet<Point>, cache: &mut HashSet<Point>) -> bool {
-    fn inner(
-        point: Point,
-        visited: &HashSet<Point>,
-        cache: &HashSet<Point>,
-        checked_points: &mut HashSet<Point>,
-        (min, max): (Point, Point),
-    ) -> bool {
-        let (min_x, min_y) = min;
-        let (max_x, max_y) = max;
-
-        // Extend a ray to every direction and see if there exist a visited point
-        if !DIRECTIONS.into_iter().all(|direction| match direction {
-            (0, _) => {
-                let (px, mut py) = add_points(point, direction);
-                while py <= max_y && py >= min_y {
-                    if visited.contains(&(px, py)) {
-                        return true;
-                    }
-
-                    (_, py) = add_points((px, py), direction);
-                }
-
-                false
-            }
-            (_, 0) => {
-                let (mut px, py) = add_points(point, direction);
-                while px <= max_x && px >= min_x {
-                    if visited.contains(&(px, py)) {
-                        return true;
-                    }
-
-                    (px, _) = add_points((px, py), direction);
-                }
-
-                false
-            }
-            _ => unreachable!(),
-        }) {
-            return false;
-        }
-
-        let next_points = DIRECTIONS
-            .into_iter()
-            .map(|direction| add_points(point, direction))
-            .filter(|&p| !visited.contains(&p) && !cache.contains(&p) && checked_points.insert(p))
-            .collect::<Vec<_>>();
-
-        next_points.into_iter().all(|p| {
-            inner(
-                p,
-                visited,
-                cache,
-                checked_points,
-                ((min_x, min_y), (max_x, max_y)),
-            )
-        })
-    }
-
-    if visited.is_empty() {
-        return false;
-    }
-
-    if cache.contains(&point) {
-        return true;
-    }
-
+fn surround(point: Point, visited: &mut HashSet<Point>) {
     // Find grid boundaries
     let mut max_x = None;
     let mut max_y = None;
     let mut min_x = None;
     let mut min_y = None;
 
-    for &(px, py) in visited {
+    for &(px, py) in visited.iter() {
         if max_x.is_none_or(|max| px > max) {
-            max_x = Some(px);
+            max_x = Some(px + 1);
         }
 
         if max_y.is_none_or(|max| py > max) {
-            max_y = Some(py);
+            max_y = Some(py + 1);
         }
 
         if min_x.is_none_or(|min| px < min) {
-            min_x = Some(px);
+            min_x = Some(px - 1);
         }
 
         if min_y.is_none_or(|min| py < min) {
-            min_y = Some(py);
+            min_y = Some(py - 1);
         }
     }
 
@@ -156,21 +98,26 @@ fn surrounded(point: Point, visited: &HashSet<Point>, cache: &mut HashSet<Point>
     let min_x = min_x.unwrap();
     let min_y = min_y.unwrap();
 
-    let mut checked_points = HashSet::from([point]);
+    // Do flood fill in all directions and stop if it overflows the boundary
+    'outer: for direction in DIRECTIONS {
+        let starting_point = add_points(point, direction);
+        let mut ff_visited = HashSet::new();
+        let mut queue = VecDeque::from([starting_point]);
 
-    let result = inner(
-        point,
-        visited,
-        cache,
-        &mut checked_points,
-        ((min_x, min_y), (max_x, max_y)),
-    );
+        while let Some(curr @ (cx, cy)) = queue.pop_front() {
+            if cx > max_x || cx < min_x || cy > max_y || cy < min_y {
+                continue 'outer;
+            }
 
-    if result {
-        cache.extend(checked_points);
+            if visited.contains(&curr) || !ff_visited.insert(curr) {
+                continue;
+            }
+
+            queue.extend(DIRECTIONS.into_iter().map(|d| add_points(curr, d)))
+        }
+
+        visited.extend(ff_visited);
     }
-
-    result
 }
 
 fn add_points((px, py): Point, (dx, dy): Point) -> Point {
