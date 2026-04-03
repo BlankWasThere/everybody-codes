@@ -41,7 +41,7 @@ pub fn solve(input: &str) -> u32 {
                 .into_iter()
                 .all(|d| visited.contains(&add_points(p, d)))
         })
-        .collect::<HashSet<_>>();
+        .collect::<Vec<_>>();
 
     for r#move in MOVES.into_iter().cycle() {
         if remaining.is_empty() {
@@ -124,7 +124,7 @@ fn add_points((px, py): Point, (dx, dy): Point) -> Point {
     (px + dx, py + dy)
 }
 
-fn parse_input(input: &str) -> HashSet<Point> {
+fn parse_input(input: &str) -> Vec<Point> {
     let mut start = None;
     let mut destinations = vec![];
     for (y, line) in input.trim().lines().enumerate() {
