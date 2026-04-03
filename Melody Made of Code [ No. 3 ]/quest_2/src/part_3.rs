@@ -143,7 +143,7 @@ fn parse_input(input: &str) -> HashSet<Point> {
         }
     }
 
-    let (sx, sy) = start.expect("should exist an starting point");
+    let (sx, sy) = start.expect("should exist a starting point");
 
     destinations
         .into_iter()
