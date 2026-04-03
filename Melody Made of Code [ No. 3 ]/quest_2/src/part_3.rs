@@ -54,9 +54,16 @@ pub fn solve(input: &str) -> u32 {
             continue;
         }
 
+        if DIRECTIONS
+            .into_iter()
+            .chain([(-1, -1), (1, -1), (-1, 1), (1, 1)])
+            .any(|p| p != curr && visited.contains(&p))
+        {
+            surround(next_point, &mut visited);
+        }
+
         steps += 1;
         curr = next_point;
-        surround(curr, &mut visited);
 
         remaining.retain(|&p| {
             !DIRECTIONS
