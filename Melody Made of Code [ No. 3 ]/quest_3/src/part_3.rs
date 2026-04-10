@@ -118,8 +118,6 @@ pub fn solve(input: &str) -> u32 {
             if root.insert(&mut node) {
                 break;
             }
-
-            println!("{node:?}");
         }
     }
 
